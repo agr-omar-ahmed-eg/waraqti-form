@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ورقتي → Google Form</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #4ade80;
+    --accent-dim: rgba(74,222,128,0.12);
+    --danger: #f87171;
+    --danger-dim: rgba(248,113,113,0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .logo {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-size: clamp(24px, 5vw, 36px);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .sub {
+    font-size: 15px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 600px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* API Key */
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-row input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    direction: ltr;
+  }
+
+  .api-row input:focus { border-color: var(--accent); }
+
+  .api-row button {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+
+  .api-row button:hover { color: var(--text); }
+
+  .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* Upload */
+  .upload-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    background: transparent;
+  }
+
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .upload-zone input {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .upload-icon { font-size: 40px; margin-bottom: 10px; }
+
+  .upload-zone p { font-size: 15px; color: var(--muted); }
+  .upload-zone span { font-size: 12px; color: #555; margin-top: 4px; display: block; }
+
+  #previewImg {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    margin-top: 1rem;
+    display: none;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    max-width: 600px;
+    padding: 14px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #0a1a0a;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+    margin-bottom: 1rem;
+  }
+
+  .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%;
+    max-width: 600px;
+    padding: 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+    margin-bottom: 1rem;
+  }
+
+  .btn-secondary:hover { background: var(--surface2); }
+
+  /* Status */
+  .status {
+    width: 100%;
+    max-width: 600px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Questions */
+  .questions-header {
+    width: 100%; max-width: 600px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+    display: none;
+  }
+
+  .questions-header h2 { font-size: 15px; font-weight: 700; }
+
+  .q-count {
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .q-card {
+    width: 100%; max-width: 600px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    display: none;
+  }
+
+  .q-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .q-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+
+  .q-del {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .q-del:hover { color: var(--danger); background: var(--danger-dim); }
+
+  .q-text {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    min-height: 42px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .q-text:focus { border-color: var(--accent); }
+
+  .q-type {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .q-type:focus { border-color: var(--accent); }
+
+  /* Add question */
+  .add-q {
+    width: 100%; max-width: 600px;
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .add-q:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Form title */
+  .form-title-wrap {
+    width: 100%; max-width: 600px;
+    display: none;
+    margin-bottom: 1rem;
+  }
+
+  .form-title-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-title-input:focus { border-color: var(--accent); }
+
+  /* Success */
+  .success-box {
+    width: 100%; max-width: 600px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(74,222,128,0.25);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    display: none;
+    margin-bottom: 1rem;
+  }
+
+  .success-box h3 { font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .success-box p { font-size: 13px; color: #aaa; line-height: 1.6; }
+
+  .form-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+
+  .form-link span {
+    flex: 1;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: ltr;
+    cursor: pointer;
+  }
+
+  .form-link button {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+
+  .form-link button:hover { color: var(--text); }
+
+  /* Error */
+  .error-box {
+    width: 100%; max-width: 600px;
+    background: var(--danger-dim);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    font-size: 13px;
+    color: var(--danger);
+    display: none;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  /* Steps */
+  .steps {
+    width: 100%; max-width: 600px;
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .step {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .step:first-child { border-left: none; }
+  .step .n { display: block; font-size: 18px; font-weight: 700; color: #333; margin-bottom: 2px; transition: color 0.3s; }
+  .step.active .n { color: var(--accent); }
+  .step.active { color: var(--text); background: var(--surface2); }
+  .step.done .n { color: var(--accent); }
+  .step.done { color: var(--accent); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="logo">ورقتي → Form</div>
+
+<h1>صورة ورقة <span>→ Google Form</span></h1>
+<p class="sub">ارفع صورة أسئلة مكتوبة بالإيد وهيتعمل الـ Form أوتوماتيك</p>
+
+<div class="steps">
+  <div class="step active" id="step1"><span class="n">١</span>API Key</div>
+  <div class="step" id="step2"><span class="n">٢</span>الصورة</div>
+  <div class="step" id="step3"><span class="n">٣</span>الأسئلة</div>
+  <div class="step" id="step4"><span class="n">٤</span>Form جاهز</div>
+</div>
+
+<!-- API Key -->
+<div class="card" id="apiCard" style="max-width:600px;width:100%">
+  <div class="label">Gemini API Key</div>
+  <div class="api-row">
+    <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off" />
+    <button onclick="toggleKey()">👁</button>
+  </div>
+  <p style="font-size:12px;color:#555;margin-top:8px">
+    احصل عليه من <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a> — بيتحفظ في المتصفح بس مش بيتبعت لأي مكان
+  </p>
+</div>
+
+<!-- Upload -->
+<div class="card" id="uploadCard" style="max-width:600px;width:100%">
+  <div class="label" style="margin-bottom:12px">الصورة</div>
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" accept="image/*" id="fileInput" />
+    <div class="upload-icon">📷</div>
+    <p>اضغط أو اسحب صورة الورقة هنا</p>
+    <span>PNG · JPG · JPEG · WEBP</span>
+  </div>
+  <img id="previewImg" alt="معاينة" />
+</div>
+
+<button class="btn-primary" id="analyzeBtn" disabled onclick="analyzeImage()">
+  🔍 تحليل الصورة واستخراج الأسئلة
+</button>
+
+<!-- Status -->
+<div class="status" id="statusBox">
+  <div class="spinner"></div>
+  <span id="statusText">جاري التحليل...</span>
+</div>
+
+<!-- Error -->
+<div class="error-box" id="errorBox"></div>
+
+<!-- Form Title -->
+<div class="form-title-wrap" id="titleWrap">
+  <input class="form-title-input" id="formTitle" placeholder="اسم الـ Google Form" />
+</div>
+
+<!-- Questions Header -->
+<div class="questions-header" id="qHeader">
+  <h2>الأسئلة — عدّل لو محتاج</h2>
+  <span class="q-count" id="qCount">0 سؤال</span>
+</div>
+
+<!-- Questions List -->
+<div id="qList" style="width:100%;max-width:600px"></div>
+
+<!-- Add Question -->
+<button class="add-q" id="addQBtn" onclick="addQuestion()">
+  ＋ أضف سؤال
+</button>
+
+<button class="btn-secondary hidden" id="createFormBtn" onclick="createForm()">
+  📋 إنشاء Google Form الآن
+</button>
+
+<!-- Success -->
+<div class="success-box" id="successBox">
+  <h3>✅ الـ Form اتعمل بنجاح!</h3>
+  <p id="successMsg"></p>
+  <div class="form-link" id="formLinkBox">
+    <span id="formLinkText" onclick="openFormLink()"></span>
+    <button onclick="copyLink()">نسخ</button>
+    <button onclick="openFormLink()">فتح</button>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxU7wZn9Gvqbky0I1Ov-fV8K9VFIMUMK0FN2jKCzV7RFVelYDF487W7FvC71j4oZaWb/exec';
+
+let questions = [];
+let imageBase64 = null;
+let imageMime = 'image/jpeg';
+let formLink = '';
+
+// Save/load API key
+const apiInput = document.getElementById('apiKey');
+const saved = localStorage.getItem('gemini_key');
+if (saved) apiInput.value = saved;
+apiInput.addEventListener('input', () => {
+  localStorage.setItem('gemini_key', apiInput.value.trim());
+  checkReady();
+});
+
+function toggleKey() {
+  apiInput.type = apiInput.type === 'password' ? 'text' : 'password';
+}
+
+// File upload
+const fileInput = document.getElementById('fileInput');
+const previewImg = document.getElementById('previewImg');
+const uploadZone = document.getElementById('uploadZone');
+
+fileInput.addEventListener('change', handleFile);
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) processFile(f);
+});
+
+function handleFile(e) {
+  const f = e.target.files[0];
+  if (f) processFile(f);
+}
+
+function processFile(f) {
+  imageMime = f.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    imageBase64 = ev.target.result.split(',')[1];
+    previewImg.src = ev.target.result;
+    previewImg.style.display = 'block';
+    setStep(2);
+    checkReady();
+  };
+  reader.readAsDataURL(f);
+}
+
+function checkReady() {
+  const hasKey = apiInput.value.trim().length > 10;
+  const hasImg = !!imageBase64;
+  document.getElementById('analyzeBtn').disabled = !(hasKey && hasImg);
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+function showStatus(msg) {
+  const box = document.getElementById('statusBox');
+  box.style.display = 'flex';
+  document.getElementById('statusText').textContent = msg;
+}
+
+function hideStatus() {
+  document.getElementById('statusBox').style.display = 'none';
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = '⚠️ ' + msg;
+  box.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+async function analyzeImage() {
+  const key = apiInput.value.trim();
+  if (!key || !imageBase64) return;
+
+  document.getElementById('analyzeBtn').disabled = true;
+  hideError();
+  showStatus('Gemini بيقرأ الأسئلة...');
+  setStep(3);
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              {
+                inline_data: {
+                  mime_type: imageMime,
+                  data: imageBase64
+                }
+              },
+              {
+                text: `استخرج كل الأسئلة من هذه الصورة بدقة.
+أجب فقط بـ JSON صحيح بدون أي نص أو markdown أو backticks قبله أو بعده، بالشكل التالي بالضبط:
+{"title":"عنوان مناسب للنموذج","questions":[{"text":"نص السؤال كاملاً","type":"short_answer"}]}
+أنواع الأسئلة المتاحة: short_answer, paragraph, multiple_choice
+لو في خيارات في السؤال أضف: "options":["خيار1","خيار2"]
+إذا لم تجد أسئلة واضحة، اكتب: {"title":"نموذج","questions":[{"text":"لم أتمكن من قراءة الأسئلة، يرجى رفع صورة أوضح","type":"short_answer"}]}`
+              }
+            ]
+          }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+        })
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'خطأ في Gemini API');
+    }
+
+    const data = await res.json();
+    let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    raw = raw.replace(/```json|```/g, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (match) parsed = JSON.parse(match[0]);
+      else throw new Error('الرد مش JSON صحيح: ' + raw.substring(0, 100));
+    }
+
+    questions = (parsed.questions || []).map(q => ({
+      text: q.text || '',
+      type: q.type || 'short_answer',
+      options: q.options || []
+    }));
+
+    document.getElementById('formTitle').value = parsed.title || 'استبيان جديد';
+
+    renderQuestions();
+    hideStatus();
+
+    document.getElementById('titleWrap').style.display = 'block';
+    document.getElementById('qHeader').style.display = 'flex';
+    document.getElementById('addQBtn').style.display = 'flex';
+    document.getElementById('createFormBtn').classList.remove('hidden');
+    document.getElementById('analyzeBtn').disabled = false;
+
+  } catch (err) {
+    hideStatus();
+    showError(err.message || 'حصل خطأ غير متوقع');
+    document.getElementById('analyzeBtn').disabled = false;
+    setStep(2);
+  }
+}
+
+function renderQuestions() {
+  const list = document.getElementById('qList');
+  list.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.style.display = 'block';
+    div.innerHTML = `
+      <div class="q-meta">
+        <span class="q-num">سؤال ${i + 1}</span>
+        <button class="q-del" onclick="deleteQ(${i})" title="حذف">✕</button>
+      </div>
+      <textarea class="q-text" rows="2" onchange="questions[${i}].text=this.value">${escHtml(q.text)}</textarea>
+      <select class="q-type" onchange="questions[${i}].type=this.value">
+        <option value="short_answer" ${q.type==='short_answer'?'selected':''}>إجابة قصيرة</option>
+        <option value="paragraph" ${q.type==='paragraph'?'selected':''}>فقرة</option>
+        <option value="multiple_choice" ${q.type==='multiple_choice'?'selected':''}>اختيار من متعدد</option>
+        <option value="checkbox" ${q.type==='checkbox'?'selected':''}>مربعات اختيار</option>
+        <option value="dropdown" ${q.type==='dropdown'?'selected':''}>قائمة منسدلة</option>
+      </select>
+    `;
+    list.appendChild(div);
+  });
+  document.getElementById('qCount').textContent = questions.length + ' سؤال';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function deleteQ(i) {
+  questions.splice(i, 1);
+  renderQuestions();
+}
+
+function addQuestion() {
+  questions.push({ text: 'سؤال جديد', type: 'short_answer', options: [] });
+  renderQuestions();
+  const cards = document.querySelectorAll('.q-card');
+  const last = cards[cards.length - 1];
+  if (last) {
+    last.querySelector('.q-text').focus();
+    last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+async function createForm() {
+  if (!questions.length) { showError('مفيش أسئلة!'); return; }
+
+  const title = document.getElementById('formTitle').value.trim() || 'استبيان جديد';
+
+  document.getElementById('createFormBtn').disabled = true;
+  hideError();
+  showStatus('بيتعمل الـ Google Form...');
+  setStep(4);
+
+  const payload = {
+    title: title,
+    questions: questions.map(q => ({
+      text: q.text,
+      type: q.type,
+      options: q.options || []
+    }))
+  };
+
+  try {
+    // POST to Apps Script
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    let result;
+    const text = await res.text();
+    try { result = JSON.parse(text); }
+    catch { result = { status: 'error', message: text }; }
+
+    hideStatus();
+
+    if (result.status === 'success' && result.formUrl) {
+      formLink = result.formUrl;
+      document.getElementById('successBox').style.display = 'block';
+      document.getElementById('successMsg').textContent =
+        `تم إنشاء الـ Form بنجاح بـ ${questions.length} سؤال!`;
+      document.getElementById('formLinkText').textContent = formLink;
+      document.getElementById('createFormBtn').disabled = false;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    } else {
+      throw new Error(result.message || 'الـ Apps Script رجع إجابة غير متوقعة:\n' + text.substring(0, 200));
+    }
+
+  } catch (err) {
+    hideStatus();
+    showError('خطأ في إنشاء الـ Form: ' + err.message);
+    document.getElementById('createFormBtn').disabled = false;
+    setStep(3);
+  }
+}
+
+function openFormLink() {
+  if (formLink) window.open(formLink, '_blank');
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(formLink).then(() => {
+    const btn = document.querySelector('.form-link button');
+    btn.textContent = '✓ تم';
+    setTimeout(() => btn.textContent = 'نسخ', 2000);
+  });
+}
+</script>
+</body>
+</html>
